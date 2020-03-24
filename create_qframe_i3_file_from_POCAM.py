@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from os.path import expandvars
 
 from icecube.icetray import I3Tray
 from I3Tray import * # otherwise the C++ modules have the wrong signatures
@@ -46,19 +47,18 @@ args = parser.parse_args()
 # Configure POCAM: 
 
 pocam_position = '18.3,-51.1,348.07' #e.g. POCAM at (87,4)
-pocam_position = I3Position(*[float(coordinate) for coordinate in photon_position.split(",")])
+pocam_position = I3Position(*[float(coordinate) for coordinate in pocam_position.split(",")])
 
 theta= 0. #dircetion irrelevant due to isotropic emission
 phi= 0.
 photon_direction = I3Direction()
 photon_direction.set_theta_phi(theta, phi)
 
-number_of_photons = 1e4
+number_of_photons = 1e7
 number_of_runs = 1
-gcd_file = 'standard.i3.bz2'
+gcd_file = expandvars('../gcd/standard.i3.bz2')
 output_file = args.output_file
 
-# Create fram:
 tray = I3Tray()
 tray.AddModule("I3InfiniteSource",
                Prefix = gcd_file,
