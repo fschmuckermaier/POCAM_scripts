@@ -18,12 +18,8 @@ from I3Tray import * # otherwise the C++ modules have the wrong signatures
 parser = OptionParser(usage = "Usage: python propagate_photons_with_clsim.py options infile1.i3 infile2.i3 ...")
 parser.add_option("--output-i3-file", help = "I3 File to write the numbers of dom hits for each run to, e.g. tmp/numbers_of_dom_hits.i3")
 parser.add_option("--output-text-file", help = "File to write the number of dom hits for each run to, one line per run, e.g. tmp/numbers_of_dom_hits.txt", default = "tmp/number_of_dom_1_1_hits.txt")
-parser.add_option("--ice-model", dest = "ice_model_file", help = "e.g. $I3_SRC/clsim/resources/ice/spice_mie")
-parser.add_option("--seed", type = "int", help = "e.g. 123456")
 parser.add_option("--number-of-frames", type = "int", default = 0)
-parser.add_option("--number-of-parallel-runs", type = "int")
-parser.add_option("--use-flasher-info-vect", default = False)
-parser.add_option("--thinning-factor", type = "float", default = 1.0, help = "Run expensive simulations with less photons. See https://github.com/fiedl/hole-ice-study/issues/85.")
+parser.add_option("--number-of-parallel-runs", type = "int", default=1)
 
 (options, args) = parser.parse_args()
 
@@ -38,7 +34,7 @@ tray.AddModule("I3Reader",
                FilenameList = input_files
 )
 tray.AddService("I3SPRNGRandomServiceFactory",
-                Seed = options.seed,
+                Seed = 123456,
                 NStreams = 2,
                 StreamNum = 1)
 randomService = phys_services.I3SPRNGRandomService(seed = options.seed,
@@ -48,10 +44,10 @@ randomService = phys_services.I3SPRNGRandomService(seed = options.seed,
 common_clsim_parameters = dict(
     PhotonSeriesName = "PropagatedPhotons",
     RandomService = randomService,
-    IceModelLocation = options.ice_model_file,
+    IceModelLocation = expandvars("$I3_SRC/clsim/resources/ice/spice_mie"),
     UnWeightedPhotons = True,
     ParallelEvents = options.number_of_parallel_runs,
-    UnWeightedPhotonsScalingFactor = options.thinning_factor,
+    UnWeightedPhotonsScalingFactor = 1.0,
     DOMOversizeFactor = 1.0,
     UnshadowedFraction = 1.0,
     FlasherInfoVectName = ("I3FlasherInfo" if options.use_flasher_info_vect else ""),
