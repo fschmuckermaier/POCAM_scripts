@@ -27,13 +27,7 @@ class GeneratePOCAM_Module(icetray.I3Module):
                           1)
         self.AddParameter("FlasherPulseType",
                           "The I3CLSimFlasherPulse.FlasherPulseType of the photon flashs. For a list, see: https://github.com/claudiok/clsim/blob/master/public/clsim/I3CLSimFlasherPulse.h#L59",
-                          I3CLSimFlasherPulse.FlasherPulseType.LED340nm)
-        self.AddParameter("PlaneWave",
-                          "Whether to start the photons from a plane rather than a point",
-                          False)
-        self.AddParameter("PlaneWaveSize",
-                          "How big should the plane be in metres, e.g. 1.0.",
-                          1.0)
+                          I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
         self.AddParameter("Seed",
                           "Seed for the random number generator",
                           1234)
@@ -45,8 +39,6 @@ class GeneratePOCAM_Module(icetray.I3Module):
         self.photon_direction = self.GetParameter("PhotonDirection")
         self.num_of_photons = self.GetParameter("NumOfPhotons")
         self.pulse_type = self.GetParameter("FlasherPulseType")
-        self.plane_wave = self.GetParameter("PlaneWave")
-        self.plane_wave_size = self.GetParameter("PlaneWaveSize")
         self.seed = self.GetParameter("Seed")
 
     def generate_pulse(self, photon_position, photon_direction, number_of_photons):
@@ -69,22 +61,8 @@ class GeneratePOCAM_Module(icetray.I3Module):
         random.seed(self.seed)
 
         pulse_series = I3CLSimFlasherPulseSeries()
-
-        if self.plane_wave:
-            for i in xrange(self.num_of_photons):
-                random_vector = I3Position(random.random() * 2 - 1, random.random() * 2 - 1, random.random() * 2 - 1)
-                shift_vector_a = self.photon_direction.cross(random_vector)
-                shift_vector_b = self.photon_direction.cross(shift_vector_a)
-                len_a = math.sqrt(shift_vector_a * shift_vector_a)
-                len_b = math.sqrt(shift_vector_b * shift_vector_b)
-                new_photon_position = self.photon_position + \
-                    shift_vector_a / len_a * (random.random() * 2 - 1) * self.plane_wave_size / 2 + \
-                    shift_vector_b / len_b * (random.random() * 2 - 1) * self.plane_wave_size / 2
-                pulse = self.generate_pulse(new_photon_position, self.photon_direction, 1)
-                pulse_series.append(pulse)
-        else:
-            pulse = self.generate_pulse(self.photon_position, self.photon_direction, self.num_of_photons)
-            pulse_series.append(pulse)
+        pulse = self.generate_pulse(self.photon_position, self.photon_direction, self.num_of_photons)
+        pulse_series.append(pulse)
 
         frame[self.series_frame_key] = pulse_series
         self.PushFrame(frame, "OutBox")

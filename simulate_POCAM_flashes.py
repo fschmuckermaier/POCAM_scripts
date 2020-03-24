@@ -22,7 +22,6 @@ parser.add_option("--ice-model", dest = "ice_model_file", help = "e.g. $I3_SRC/c
 parser.add_option("--seed", type = "int", help = "e.g. 123456")
 parser.add_option("--number-of-frames", type = "int", default = 0)
 parser.add_option("--number-of-parallel-runs", type = "int")
-parser.add_option("--save-photon-paths", default = False)
 parser.add_option("--use-flasher-info-vect", default = False)
 parser.add_option("--thinning-factor", type = "float", default = 1.0, help = "Run expensive simulations with less photons. See https://github.com/fiedl/hole-ice-study/issues/85.")
 
@@ -33,23 +32,11 @@ input_files = args
 if isinstance(input_files, basestring):
     input_files = eval(input_files)
 
-om_key = OMKey(1,1)
-
-counter = 0
-numbers_of_dom_hits = []
-def ReadOutAngularAcceptance(frame):
-    global numbers_of_dom_hits
-    n = 0
-    if (frame['MCPESeriesMap'].items() != []):
-        if not frame['MCPESeriesMap'].get(om_key) is None:
-            n = len(frame['MCPESeriesMap'].get(om_key))
-    numbers_of_dom_hits.append(n)
-    global counter
-    counter += 1
 
 tray = I3Tray()
 tray.AddModule("I3Reader",
-               FilenameList = input_files)
+               FilenameList = input_files
+)
 tray.AddService("I3SPRNGRandomServiceFactory",
                 Seed = options.seed,
                 NStreams = 2,
@@ -77,12 +64,6 @@ tray.AddSegment(clsim.I3CLSimMakeHits,
                 **common_clsim_parameters
                 )
 
-if not options.save_photon_paths:
-    # This does only work with the `I3CLSimMakeHits` module, thus does
-    # not work with `save_photon_paths`.
-    tray.AddModule(ReadOutAngularAcceptance,
-                   Streams = [icetray.I3Frame.DAQ])
-
 tray.AddModule("I3Writer",
                Filename = options.output_i3_file)
 tray.AddModule("TrashCan")
@@ -94,10 +75,6 @@ else:
 
 tray.Finish()
 
-outfile = open(options.output_text_file, 'w')
-for number_of_dom_hits in numbers_of_dom_hits:
-  print >> outfile, number_of_dom_hits
-outfile.close()
 
 
 
