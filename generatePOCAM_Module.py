@@ -1,3 +1,5 @@
+# Icetray module to initiate a POCAM as a light source
+
 from icecube import icetray, dataclasses
 from I3Tray import I3Units
 from icecube.dataclasses import I3Position

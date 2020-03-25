@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Takes photons from qframe and propagates them. Saves results in output-i3-file. 
+
 from optparse import OptionParser
 import glob
 from os.path import expandvars

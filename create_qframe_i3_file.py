@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+# Creates photons emitted from a single POCAM and stores their position in qframe
+
+
 from os.path import expandvars
 
 from icecube.icetray import I3Tray
@@ -18,7 +22,7 @@ parser.add_argument('--output-file', type=str, required=True)
 args = parser.parse_args()
 
 
-# Table of POCAM positions (String, OM-number, x , y, z):
+# Table of all 21 POCAM positions (String, OM-number, x , y, z):
 '''
 87 4   18.3 -51.1 348.07
 87 84  18.3 -51.1 -421.93
@@ -46,17 +50,16 @@ args = parser.parse_args()
 
 # Configure POCAM: 
 
-pocam_position = '18.3,-51.1,348.07' #e.g. POCAM at (87,4)
-pocam_position = I3Position(*[float(coordinate) for coordinate in pocam_position.split(",")])
+pocam_position = I3Position(*[18.3, -51.1, 348.07]) #e.g. POCAM at (87,4)
 
 theta= 0. #dircetion irrelevant due to isotropic emission
 phi= 0.
 photon_direction = I3Direction()
 photon_direction.set_theta_phi(theta, phi)
 
-number_of_photons = 1e7
+number_of_photons = 1e9
 number_of_runs = 1
-gcd_file = expandvars('../gcd/standard.i3.bz2')
+gcd_file = expandvars('/home/fschmuckermaier/gcd/standard.i3.bz2') #or standard_gcd_cable.i3
 output_file = args.output_file
 
 tray = I3Tray()

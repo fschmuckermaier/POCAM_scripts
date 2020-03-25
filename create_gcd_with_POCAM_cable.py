@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Takes input gcd and puts cables next to POCAM positions
+# Note: Cable length?
+
 input_gcd_file = "/home/fschmuckermaier/gcd/standard.i3.gz"
 
 # Data destination
@@ -10,9 +13,7 @@ cable_effective_scattering_length = 100.0 # metres
 cable_absorption_length = 0.0
 cable_radius = 0.02 # metres
 
-dom_radius = 0.16510 # metres
 
-from optparse import OptionParser
 import glob
 
 import os
@@ -21,13 +22,10 @@ import sys
 import pandas
 import numpy as np
 
-# Command line interface
-parser = OptionParser(usage = "Usage: python create_gcd_file_with_POCAM_cable.py options")
-(options, args) = parser.parse_args()
-
 def expand_path(filename):
   return os.path.expandvars(os.path.expanduser(filename))
 
+#[x,y,z] of all 21 POCAMs:
 pocam_positions=[ 
 		[18.3,-51.1,348.07], 
 		[18.3,-51.1,-421.93],
