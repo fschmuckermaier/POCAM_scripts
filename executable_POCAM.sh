@@ -5,8 +5,8 @@
 #/home/fschmuckermaier/IceCube/build/env-shell.sh
 
 #Create q frame with POCAM as light source:
-python create_qframe_i3_file_from_POCAM.py --output-file "path/qframe.i3"
+python create_qframe_i3_file_from_POCAM.py --output-file="path/qframe.i3"
 
 #Propagate photons to complete simulation:
-python simulate_POCAM_flashes.py "path/qframe.i3" --output-i3-file "path/output.i3" --output-text-file "path/output.txt" 
+python simulate_POCAM_flashes.py --output-i3-file="path/output.i3" --output-text-file="path/output.txt" "path/qframe.i3" 
 

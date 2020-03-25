@@ -75,5 +75,5 @@ tray.AddModule(GeneratePOCAM_Module,
 tray.AddModule("I3Writer",
                Filename = output_file)
 tray.AddModule("TrashCan")
-tray.Execute(number_of_frames)
+tray.Execute(number_of_runs)
 tray.Finish()
