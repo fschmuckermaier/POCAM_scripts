@@ -3,10 +3,10 @@
 # Takes input gcd and puts cables next to POCAM positions
 # Note: Cable length?
 
-input_gcd_file = "/home/fschmuckermaier/gcd/standard.i3.gz"
+input_gcd_file = "/home/fschmuckermaier/gcd/standard.i3.bz2"
 
 # Data destination
-destination_gcd_file = "/home/fschmuckermaier/gcd/standard_gcd_cable.i3"
+destination_gcd_file = "/home/fschmuckermaier/gcd/standard_gcd_cable.i3.bz2"
 
 # Material properties
 cable_effective_scattering_length = 100.0 # metres
@@ -60,7 +60,7 @@ cable_absorption_lengths=[]
 for i in range(21):
     cable_radii.append(cable_radius) 
     cable_scattering_lengths.append(cable_effective_scattering_length)
-    cable_absorption_length.append(cable_absorption_length)
+    cable_absorption_lengths.append(cable_absorption_length)
 
 
 
@@ -94,4 +94,4 @@ tray.AddModule("TrashCan")
 tray.Execute()
 tray.Finish()
 
-print "Output file: " + destination_gcd_file
+print("Output file: " + destination_gcd_file)
