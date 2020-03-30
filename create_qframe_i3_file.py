@@ -15,7 +15,9 @@ from icecube import icetray, dataio, phys_services, clsim
 import math
 import random
 
-from GeneratePOCAM_Module import GeneratePOCAM_Module
+from generatePOCAM_Module import GeneratePOCAM_Module
+
+import argparse
 
 parser = argparse.ArgumentParser(description="This script creates photons at the given position and stores them in a qframe in an .i3 output file.")
 parser.add_argument('--output-file', type=str, required=True)

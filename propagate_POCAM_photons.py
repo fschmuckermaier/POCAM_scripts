@@ -27,8 +27,8 @@ parser.add_option("--number-of-parallel-runs", type = "int", default=1)
 
 input_files = args
 
-if isinstance(input_files, basestring):
-    input_files = eval(input_files)
+#if isinstance(input_files, basestring):
+#    input_files = eval(input_files)
 
 
 tray = I3Tray()
