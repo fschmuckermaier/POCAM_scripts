@@ -1,2 +1,3 @@
+#Ignore folders:
  __pycache__/
-
+old_scripts/
