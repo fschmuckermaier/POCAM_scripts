@@ -64,6 +64,7 @@ photon_direction.set_theta_phi(theta, phi)
 
 gcd_file=expandvars(options.gcd_file)
 
+seed=12345
 
 tray = I3Tray()
 tray.AddModule("I3InfiniteSource",
@@ -75,27 +76,25 @@ tray.AddModule(GeneratePOCAM_Module,
                PhotonPosition = pocam_position,
                PhotonDirection = photon_direction,
                NumOfPhotons = options.number_of_photons,
-               Seed = 1234,
+               Seed = seed,
                FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
 
-#tray.AddService("I3SPRNGRandomServiceFactory",
-#                Seed = 123456,
-#                NStreams = 2,
-#                StreamNum = 1)
+tray.AddService("I3SPRNGRandomServiceFactory",
+                Seed = seed,
+                NStreams = 2,
+                StreamNum = 1)
+randomService = phys_services.I3SPRNGRandomService(seed = seed,
+                                                   nstreams = 10000,
+                                                   streamnum = 1)
 
-#randomService = phys_services.I3SPRNGRandomService(seed = 1234,
-#                                                   nstreams = 10000,
-#                                                   streamnum = 1)
-
-randomService = phys_services.I3GSLRandomService(seed = 1234)
 
 common_clsim_parameters = dict(
     PhotonSeriesName = "PropagatedPhotons",
     RandomService = randomService,
     IceModelLocation = expandvars("$I3_SRC/clsim/resources/ice/spice_mie"),
-    GCDFile = gcd_file,    
+    #GCDFile = gcd_file,    
     UnWeightedPhotons = True,
-    #ParallelEvents = number_of_parallel_runs,
+    ParallelEvents = number_of_parallel_runs,
     UnWeightedPhotonsScalingFactor = 1.0,
     DOMOversizeFactor = 1.0,
     UnshadowedFraction = 1.0,
@@ -104,7 +103,6 @@ common_clsim_parameters = dict(
 
 tray.AddSegment(clsim.I3CLSimMakeHits,
                 StopDetectedPhotons = True,
-                #ExtraArgumentsToI3CLSimModule = extra_args,
                 **common_clsim_parameters
                 )
 
