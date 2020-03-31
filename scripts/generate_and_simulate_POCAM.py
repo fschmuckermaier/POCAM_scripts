@@ -22,7 +22,12 @@ import glob
 
 parser = OptionParser(description="This script creates photons at the given position, propagates them and stores the output in an  .i3 output file.")
 parser.add_option("--output-i3-file", help = "I3 File to write the numbers of dom hits for each run to, e.g. tmp/numbers_of_dom_hits.i3")
+parser.add_option("--number-of-photons", type = "float",default=1e9)
+parser.add_option("--number-of-parallel-runs", type = "int",default=1)
+parser.add_option("--number-of-runs", type = "int",default=10)
+parser.add_option("--gcd_file", type = "str",default="/home/fschmuckermaier/gcd/standard.i3.bz2")
 (options, args) = parser.parse_args()
+
 
 #[x,y,z] of all 21 POCAMs:
 pocam_positions=[                    #string,om-number
@@ -49,19 +54,16 @@ pocam_positions=[                    #string,om-number
 		[27.0,-32.2,-646.93] #93,113
 ]
 
-# Configure POCAM: 
+# Configure POCAM geometry: 
 
-pocam_position = I3Position(*pocam_positions[0]) #e.g. POCAM at (87,4)
-
+pocam_position = I3Position(*pocam_positions[0]) #e.g. first POCAM at (87,4)
 theta= 0. #dircetion irrelevant due to isotropic emission
 phi= 0.
 photon_direction = I3Direction()
 photon_direction.set_theta_phi(theta, phi)
 
-number_of_photons = 1e9
-number_of_runs = 10
-number_of_parallel_runs=1
-gcd_file = expandvars('/home/fschmuckermaier/gcd/standard.i3.bz2') #or standard_gcd_cable.i3
+gcd_file=expandvars(options.gcd_file)
+
 
 tray = I3Tray()
 tray.AddModule("I3InfiniteSource",
@@ -72,7 +74,7 @@ tray.AddModule(GeneratePOCAM_Module,
                SeriesFrameKey = "PhotonFlasherPulseSeries",
                PhotonPosition = pocam_position,
                PhotonDirection = photon_direction,
-               NumOfPhotons = number_of_photons,
+               NumOfPhotons = options.number_of_photons,
                Seed = 1234,
                FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
 
@@ -113,7 +115,7 @@ tray.AddModule("TrashCan")
 if number_of_runs == 0:
     tray.Execute()
 else:
-    tray.Execute(number_of_runs)
+    tray.Execute(options.number_of_runs)
 
 tray.Finish()
 
