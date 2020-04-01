@@ -56,7 +56,7 @@ common_clsim_parameters = dict(
 
 tray.AddSegment(clsim.I3CLSimMakeHits,
                 StopDetectedPhotons = True,
-                ExtraArgumentsToI3CLSimModule = extra_args,
+                #ExtraArgumentsToI3CLSimModule = extra_args,
                 **common_clsim_parameters
                 )
 

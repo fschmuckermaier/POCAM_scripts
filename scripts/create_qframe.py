@@ -14,19 +14,23 @@ from icecube import icetray, dataio, phys_services, clsim
 
 import math
 import random
+import numpy as np
 
 from generatePOCAM_Module import GeneratePOCAM_Module
 
 import argparse
+from optparse import OptionParser
 
 parser = OptionParser(description="This script creates photons at the given position, propagates them and stores the output in an  .i3 output file.")
 parser.add_option("--output-i3-file", help = "I3 File to write the numbers of dom hits for each run to, e.g. tmp/numbers_of_dom_hits.i3")
 parser.add_option("--number-of-photons", type = "float",default=1e9)
 parser.add_option("--number-of-parallel-runs", type = "int",default=1)
-parser.add_option("--number-of-runs", type = "int",default=10)
-parser.add_option("--gcd_file", type = "str",default="/home/fschmuckermaier/gcd/standard.i3.bz2")
+parser.add_option("--number-of-runs", type = "int",default=1)
+parser.add_option("--use-isotropy",action="store_true", default=False,help="Uses isotropic emission when set, otherwise hemispherical")
+parser.add_option("--gcd-file", type = "str",default="/home/fschmuckermaier/gcd/GeoCalibDetectorStatus_IC86.55697_corrected_V2.i3.gz")
 (options, args) = parser.parse_args()
 
+gcd_file=expandvars(options.gcd_file)
 
 #[x,y,z] of all 21 POCAMs:
 pocam_positions=[                    #string,om-number
@@ -53,15 +57,8 @@ pocam_positions=[                    #string,om-number
 		[27.0,-32.2,-646.93] #93,113
 ]
 
-# Configure POCAM geometry: 
+pos=pocam_positions[0] #e.g. POCAM at (87,4)
 
-pocam_position = I3Position(*pocam_positions[0]) #e.g. first POCAM at (87,4)
-theta= 0. #dircetion irrelevant due to isotropic emission
-phi= 0.
-photon_direction = I3Direction()
-photon_direction.set_theta_phi(theta, phi)
-
-gcd_file=expandvars(options.gcd_file)
 
 seed=12345
 
@@ -70,16 +67,50 @@ tray.AddModule("I3InfiniteSource",
                Prefix = gcd_file,
                Stream = icetray.I3Frame.DAQ)
 
-tray.AddModule(GeneratePOCAM_Module,
-               SeriesFrameKey = "PhotonFlasherPulseSeries",
-               PhotonPosition = pocam_position,
-               PhotonDirection = photon_direction,
-               NumOfPhotons = options.number_of_photons,
-               Seed = seed,
-               FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
+if options.use_isotropy: #Use isotropic emission profile
+    #Configure geometry:    
+    pocam_position = I3Position(*pos)    
+    photon_direction = I3Direction()                                                                                                                                                          
+    photon_direction.set_theta_phi(0., 0.) #direction arbitrary due to isotropy
+    
+    tray.AddModule(GeneratePOCAM_Module,
+                   SeriesFrameKey = "PhotonFlasherPulseSeries",
+                   PhotonPosition = pocam_position,
+                   PhotonDirection = photon_direction,
+                   NumOfPhotons = options.number_of_photons,
+                   Seed = seed,
+	           Isotropy= True,
+                   FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
 
+else: #Use two seperated hemispheres as emission profile
+    #Configure geometry:    
+    pocam_position1 = I3Position(*[pos[0],pos[1],pos[2]+0.1]) #shift hemisphere 10cm upwards
+    pocam_position2 = I3Position(*[pos[0],pos[1],pos[2]-0.1]) #shift hemisphere 10cm downwards
+
+    photon_direction1 = I3Direction()
+    photon_direction2 = I3Direction()
+    photon_direction1.set_theta_phi(0., 0.) #one hemisphere points upwards
+    photon_direction2.set_theta_phi(np.pi, 0.) #one downwards
+
+    tray.AddModule(GeneratePOCAM_Module,
+                   SeriesFrameKey = "PhotonFlasherPulseSeries",
+                   PhotonPosition = pocam_position1,
+                   PhotonDirection = photon_direction1,
+                   NumOfPhotons = 0.5*options.number_of_photons,
+                   Seed = seed,
+		   Isotropy=False,
+                   FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
+    tray.AddModule(GeneratePOCAM_Module,                                                                                                                                                      
+                   SeriesFrameKey = "PhotonFlasherPulseSeries",                                                                                                                               
+                   PhotonPosition = pocam_position2,                                                                                                                                           
+                   PhotonDirection = photon_direction2,                                                                                                                                        
+                   NumOfPhotons = 0.5*options.number_of_photons,                                                                                                                                          
+                   Seed = seed,
+                   Isotropy=False,                                                                                                                                                               
+                   FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
+    print('Yihaa') 
 tray.AddModule("I3Writer",
                Filename = options.output_i3_file)
 tray.AddModule("TrashCan")
-tray.Execute(number_of_runs)
+tray.Execute(options.number_of_runs)
 tray.Finish()

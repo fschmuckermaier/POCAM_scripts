@@ -3,10 +3,10 @@
 # Takes input gcd and puts cables next to POCAM positions
 # Note: Cable length?
 
-input_gcd_file = "/home/fschmuckermaier/gcd/standard.i3.bz2"
+input_gcd_file = "/home/fschmuckermaier/gcd/GeoCalibDetectorStatus_IC86.55697_corrected_V2.i3.gz"
 
 # Data destination
-destination_gcd_file = "/home/fschmuckermaier/gcd/standard_gcd_cable.i3.bz2"
+destination_gcd_file = "/home/fschmuckermaier/gcd/cable_GeoCalibDetectorStatus_IC86.55697_corrected_V2.i3.gz"
 
 # Material properties
 cable_effective_scattering_length = 100.0 # metres
