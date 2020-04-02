@@ -82,7 +82,7 @@ if options.use_isotropy: #Use isotropic emission profile
 	           Isotropy= True,
                    FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
 
-else: #Use two seperated hemispheres as emission profile
+else: #Idea: Use two seperated hemispheres as emission profile
     #Configure geometry:    
     pocam_position1 = I3Position(*[pos[0],pos[1],pos[2]+0.1]) #shift hemisphere 10cm upwards
     pocam_position2 = I3Position(*[pos[0],pos[1],pos[2]-0.1]) #shift hemisphere 10cm downwards
@@ -92,6 +92,8 @@ else: #Use two seperated hemispheres as emission profile
     photon_direction1.set_theta_phi(0., 0.) #one hemisphere points upwards
     photon_direction2.set_theta_phi(np.pi, 0.) #one downwards
 
+
+    #Not sure if this works...
     tray.AddModule(GeneratePOCAM_Module,
                    SeriesFrameKey = "PhotonFlasherPulseSeries",
                    PhotonPosition = pocam_position1,
@@ -108,7 +110,6 @@ else: #Use two seperated hemispheres as emission profile
                    Seed = seed,
                    Isotropy=False,                                                                                                                                                               
                    FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
-    print('Yihaa') 
 tray.AddModule("I3Writer",
                Filename = options.output_i3_file)
 tray.AddModule("TrashCan")
