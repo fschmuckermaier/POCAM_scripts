@@ -12,6 +12,7 @@ from icecube import icetray, dataio, phys_services, clsim
 
 import math
 import random
+import numpy as np
 
 from generatePOCAM_Module import GeneratePOCAM_Module
 
@@ -125,7 +126,7 @@ common_clsim_parameters = dict(
     IceModelLocation = expandvars("$I3_SRC/clsim/resources/ice/spice_mie"),
     #GCDFile = gcd_file,    
     UnWeightedPhotons = True,
-    ParallelEvents = number_of_parallel_runs,
+    #ParallelEvents = options.number_of_parallel_runs,
     UnWeightedPhotonsScalingFactor = 1.0,
     DOMOversizeFactor = 1.0,
     UnshadowedFraction = 1.0,
