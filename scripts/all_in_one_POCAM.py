@@ -23,7 +23,7 @@ import glob
 
 parser = OptionParser(description="This script creates photons at the given position, propagates them and stores the output in an  .i3 output file.")
 parser.add_option("--output-i3-file", help = "I3 File to write the numbers of dom hits for each run to, e.g. tmp/numbers_of_dom_hits.i3")
-parser.add_option("--number-of-photons", type = "float",default=1e9)
+parser.add_option("--number-of-photons", type = "float",default=1e6)
 parser.add_option("--number-of-parallel-runs", type = "int",default=1)
 parser.add_option("--number-of-runs", type = "int",default=10)
 parser.add_option("--use-isotropy",action="store_true", default=False,help="Uses isotropic emission when set, otherwise hemispherical")
@@ -34,7 +34,7 @@ gcd_file=expandvars(options.gcd_file)
 
 #[x,y,z] of all 21 POCAMs:
 pocam_positions=[                    #string,om-number
-		[18.3,-51.1,348.07], #87,4 
+		[18.3,-51.1,348.07], #87,4
 		[18.3,-51.1,-421.93],#87,84
 		[47.3,-57.0,398.07], #88,2
 		[47.3,-57.0,-385.93],#88,72
@@ -57,7 +57,7 @@ pocam_positions=[                    #string,om-number
 		[27.0,-32.2,-646.93] #93,113
 ]
 
-# Configure POCAM geometry: 
+# Configure POCAM geometry:
 
 pos=pocam_positions[0] #e.g. POCAM at (87,4)
 
@@ -70,22 +70,22 @@ tray.AddModule("I3InfiniteSource",
                Stream = icetray.I3Frame.DAQ)
 
 if options.use_isotropy: #Use isotropic emission profile
-    #Configure geometry:    
-    pocam_position = I3Position(*pos)    
-    photon_direction = I3Direction()                                                                                                                                                          
+    #Configure geometry:
+    pocam_position = I3Position(*pos)
+    photon_direction = I3Direction()
     photon_direction.set_theta_phi(0., 0.) #direction arbitrary due to isotropy
-    
+
     tray.AddModule(GeneratePOCAM_Module,
                    SeriesFrameKey = "PhotonFlasherPulseSeries",
                    PhotonPosition = pocam_position,
                    PhotonDirection = photon_direction,
                    NumOfPhotons = options.number_of_photons,
                    Seed = seed,
-	           Isotropy= True,
+      	           Isotropy= True,
                    FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
 
 else: #Use two seperated hemispheres as emission profile
-    #Configure geometry:    
+    #Configure geometry:
     pocam_position1 = I3Position(*[pos[0],pos[1],pos[2]+0.1]) #shift hemisphere 10cm upwards
     pocam_position2 = I3Position(*[pos[0],pos[1],pos[2]-0.1]) #shift hemisphere 10cm downwards
 
@@ -100,31 +100,31 @@ else: #Use two seperated hemispheres as emission profile
                    PhotonDirection = photon_direction1,
                    NumOfPhotons = 0.5*options.number_of_photons,
                    Seed = seed,
-		   Isotropy=False,
+  		 		   Isotropy=False,
                    FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
-    tray.AddModule(GeneratePOCAM_Module,                                                                                                                                                      
-                   SeriesFrameKey = "PhotonFlasherPulseSeries",                                                                                                                               
-                   PhotonPosition = pocam_position2,                                                                                                                                           
-                   PhotonDirection = photon_direction2,                                                                                                                                        
-                   NumOfPhotons = 0.5*options.number_of_photons,                                                                                                                                          
-                   Seed = seed,
-                   Isotropy=False,                                                                                                                                                               
-                   FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
+    #tray.AddModule(GeneratePOCAM_Module,
+    #               SeriesFrameKey = "PhotonFlasherPulseSeries",
+    #               PhotonPosition = pocam_position2,
+    #               PhotonDirection = photon_direction2,
+    #               NumOfPhotons = 0.5*options.number_of_photons,
+    #               Seed = seed,
+    #               Isotropy=False,
+    #               FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
 
-tray.AddService("I3SPRNGRandomServiceFactory",
-                Seed = seed,
-                NStreams = 2,
-                StreamNum = 1)
-randomService = phys_services.I3SPRNGRandomService(seed = seed,
-                                                   nstreams = 10000,
-                                                   streamnum = 1)
+#tray.AddService("I3GSLRNGRandomServiceFactory",
+#                Seed = seed)
+                #NStreams = 2,
+                #StreamNum = 1)
+randomService = phys_services.I3GSLRandomService(seed = seed)
+                                                   #nstreams = 10000,
+                                                   #streamnum = 1)
 
 
 common_clsim_parameters = dict(
     PhotonSeriesName = "PropagatedPhotons",
     RandomService = randomService,
     IceModelLocation = expandvars("$I3_SRC/clsim/resources/ice/spice_mie"),
-    #GCDFile = gcd_file,    
+    GCDFile = gcd_file,
     UnWeightedPhotons = True,
     #ParallelEvents = options.number_of_parallel_runs,
     UnWeightedPhotonsScalingFactor = 1.0,
@@ -134,7 +134,9 @@ common_clsim_parameters = dict(
 )
 
 tray.AddSegment(clsim.I3CLSimMakeHits,
-                StopDetectedPhotons = True,
+                UseGPUs=True,
+				UseCPUs=False,
+				StopDetectedPhotons = True,
                 #ExtraArgumentsToI3CLSimModule = extra_args,
                 **common_clsim_parameters
                 )
@@ -143,7 +145,7 @@ tray.AddModule("I3Writer",
                Filename = options.output_i3_file)
 tray.AddModule("TrashCan")
 
-if number_of_runs == 0:
+if options.number_of_runs == 0:
     tray.Execute()
 else:
     tray.Execute(options.number_of_runs)
