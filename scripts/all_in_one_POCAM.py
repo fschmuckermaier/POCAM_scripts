@@ -100,16 +100,16 @@ else: #Use two seperated hemispheres as emission profile
                    PhotonDirection = photon_direction1,
                    NumOfPhotons = 0.5*options.number_of_photons,
                    Seed = seed,
-  		 		   Isotropy=False,
+                   Isotropy=False,
                    FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
-    #tray.AddModule(GeneratePOCAM_Module,
-    #               SeriesFrameKey = "PhotonFlasherPulseSeries",
-    #               PhotonPosition = pocam_position2,
-    #               PhotonDirection = photon_direction2,
-    #               NumOfPhotons = 0.5*options.number_of_photons,
-    #               Seed = seed,
-    #               Isotropy=False,
-    #               FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
+    tray.AddModule(GeneratePOCAM_Module,
+                   SeriesFrameKey = "PhotonFlasherPulseSeries",
+                   PhotonPosition = pocam_position2,
+                   PhotonDirection = photon_direction2,
+                   NumOfPhotons = 0.5*options.number_of_photons,
+                   Seed = seed,
+                   Isotropy=False,
+                   FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
 
 #tray.AddService("I3GSLRNGRandomServiceFactory",
 #                Seed = seed)
@@ -126,7 +126,6 @@ common_clsim_parameters = dict(
     IceModelLocation = expandvars("$I3_SRC/clsim/resources/ice/spice_mie"),
     GCDFile = gcd_file,
     UnWeightedPhotons = True,
-    #ParallelEvents = options.number_of_parallel_runs,
     UnWeightedPhotonsScalingFactor = 1.0,
     DOMOversizeFactor = 1.0,
     UnshadowedFraction = 1.0,
@@ -137,7 +136,6 @@ tray.AddSegment(clsim.I3CLSimMakeHits,
                 UseGPUs=True,
 				UseCPUs=False,
 				StopDetectedPhotons = True,
-                #ExtraArgumentsToI3CLSimModule = extra_args,
                 **common_clsim_parameters
                 )
 
