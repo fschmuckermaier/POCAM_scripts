@@ -21,10 +21,9 @@ from optparse import OptionParser
 import glob
 
 
-parser = OptionParser(description="This script creates photons at the given position, propagates them and stores the output in an  .i3 output file.")
+parser = OptionParser(description="This script creates photons from the specified POCAM, propagates them and stores the output in an .i3 output file.")
 parser.add_option("--output-i3-file", help = "I3 File to write the numbers of dom hits for each run to, e.g. tmp/numbers_of_dom_hits.i3")
 parser.add_option("--number-of-photons", type = "float",default=1e9)
-parser.add_option("--number-of-parallel-runs", type = "int",default=1)
 parser.add_option("--number-of-runs", type = "int",default=10)
 parser.add_option("--use-isotropy",action="store_true", default=False,help="Uses isotropic emission when set, otherwise hemispherical")
 parser.add_option("--gcd-file", type = "str",default="/home/fschmuckermaier/gcd/GeoCalibDetectorStatus_IC86.55697_corrected_V2.i3.gz")
@@ -57,8 +56,6 @@ pocam_positions=[                    #string,om-number
 		[27.0,-31.2,-349.93],#93,64
 		[27.0,-32.2,-646.93] #93,113
 ]
-
-# Configure POCAM geometry:
 pos=pocam_positions[options.POCAM_index]
 
 
