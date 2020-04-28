@@ -23,11 +23,12 @@ import glob
 
 parser = OptionParser(description="This script creates photons at the given position, propagates them and stores the output in an  .i3 output file.")
 parser.add_option("--output-i3-file", help = "I3 File to write the numbers of dom hits for each run to, e.g. tmp/numbers_of_dom_hits.i3")
-parser.add_option("--number-of-photons", type = "float",default=1e6)
+parser.add_option("--number-of-photons", type = "float",default=1e9)
 parser.add_option("--number-of-parallel-runs", type = "int",default=1)
 parser.add_option("--number-of-runs", type = "int",default=10)
 parser.add_option("--use-isotropy",action="store_true", default=False,help="Uses isotropic emission when set, otherwise hemispherical")
 parser.add_option("--gcd-file", type = "str",default="/home/fschmuckermaier/gcd/GeoCalibDetectorStatus_IC86.55697_corrected_V2.i3.gz")
+parser.add_option("--POCAM-index", type = "int",default=1,help="Number of POCAM to flash according to list below in script")
 (options, args) = parser.parse_args()
 
 gcd_file=expandvars(options.gcd_file)
@@ -58,8 +59,7 @@ pocam_positions=[                    #string,om-number
 ]
 
 # Configure POCAM geometry:
-
-pos=pocam_positions[0] #e.g. POCAM at (87,4)
+pos=pocam_positions[options.POCAM_index]
 
 
 seed=12345
@@ -86,8 +86,8 @@ if options.use_isotropy: #Use isotropic emission profile
 
 else: #Use two seperated hemispheres as emission profile
     #Configure geometry:
-    pocam_position1 = I3Position(*[pos[0],pos[1],pos[2]+0.1]) #shift hemisphere 10cm upwards
-    pocam_position2 = I3Position(*[pos[0],pos[1],pos[2]-0.1]) #shift hemisphere 10cm downwards
+    pocam_position1 = I3Position(*[pos[0],pos[1],pos[2]+0.125]) #shift hemisphere 12.5cm upwards
+    pocam_position2 = I3Position(*[pos[0],pos[1],pos[2]-0.125]) #shift hemisphere 12.5cm downwards
 
     photon_direction1 = I3Direction()
     photon_direction2 = I3Direction()
@@ -111,10 +111,6 @@ else: #Use two seperated hemispheres as emission profile
                    Isotropy=False,
                    FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
 
-#tray.AddService("I3GSLRNGRandomServiceFactory",
-#                Seed = seed)
-                #NStreams = 2,
-                #StreamNum = 1)
 randomService = phys_services.I3GSLRandomService(seed = seed)
                                                    #nstreams = 10000,
                                                    #streamnum = 1)
@@ -129,13 +125,13 @@ common_clsim_parameters = dict(
     UnWeightedPhotonsScalingFactor = 1.0,
     DOMOversizeFactor = 1.0,
     UnshadowedFraction = 1.0,
-    FlasherPulseSeriesName = "PhotonFlasherPulseSeries"
-)
+    DoNotParallelize=True,
+    UseGPUs=True,
+    UseCPUs=False,
+    StopDetectedPhotons = True,
+    FlasherPulseSeriesName = "PhotonFlasherPulseSeries")
 
 tray.AddSegment(clsim.I3CLSimMakeHits,
-                UseGPUs=True,
-				UseCPUs=False,
-				StopDetectedPhotons = True,
                 **common_clsim_parameters
                 )
 
