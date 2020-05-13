@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 from os.path import expandvars
 
 from icecube.icetray import I3Tray
@@ -26,6 +25,7 @@ parser.add_option("--output-i3-file", help = "I3 File to write the numbers of do
 parser.add_option("--number-of-photons", type = "float",default=1e9)
 parser.add_option("--number-of-runs", type = "int",default=10)
 parser.add_option("--use-isotropy",action="store_true", default=False,help="Uses isotropic emission when set, otherwise hemispherical")
+parser.add_option("--add-cable",action="store_true", default=False,help="Places cable next to every POCAM position")
 parser.add_option("--gcd-file", type = "str",default="/home/fschmuckermaier/gcd/GeoCalibDetectorStatus_IC86.55697_corrected_V2.i3.gz")
 parser.add_option("--POCAM-index", type = "int",default=3,help="Number of POCAM to flash according to list below in script, default is the second POCAM at string 88")
 parser.add_option("--seed",type="int",default=12345,help="Initial seed for the random number generator")
@@ -57,17 +57,47 @@ pocam_positions=[            #index, (string,om-number)
 		[27.0,-31.2,-349.93],#19, (93,64)
 		[27.0,-32.2,-646.93] #20, (93,113)
 ]
-pos=pocam_positions[options.POCAM_index]
+pocam_pos=pocam_positions[options.POCAM_index]
 
+if options.add_cable: #Configure cables if set
+    # Material properties
+    cable_effective_scattering_length = 100.0 # metres
+    cable_absorption_length = 0.0
+    cable_radius = 0.02 # metres
+
+    #Cable positions: 15cm in y direction from POCAM center
+    cable_positions=[[pos[0], pos[1]+0.15, pos[2]] for pos in pocam_positions]
+    cable_radii=[]
+    cable_scattering_lengths=[]
+    cable_absorption_lengths=[]
+    for i in range(21):
+        cable_radii.append(cable_radius)
+        cable_scattering_lengths.append(cable_effective_scattering_length)
+        cable_absorption_lengths.append(cable_absorption_length)
+
+    def add_cable_to_geometry_frame(frame, positions = [], radii = [], scattering_lengths = [], absorption_lengths = []):
+        positions = (dataclasses.I3Position(pos[0], pos[1], pos[2]) for pos in positions)
+        frame.Put("HoleIceCylinderPositions", dataclasses.I3VectorI3Position(positions))
+        frame.Put("HoleIceCylinderRadii", dataclasses.I3VectorFloat(radii))
+        frame.Put("HoleIceCylinderScatteringLengths", dataclasses.I3VectorFloat(scattering_lengths))
+        frame.Put("HoleIceCylinderAbsorptionLengths", dataclasses.I3VectorFloat(absorption_lengths))
 
 tray = I3Tray()
 tray.AddModule("I3InfiniteSource",
                Prefix = gcd_file,
                Stream = icetray.I3Frame.DAQ)
 
+if options.add_cable: #add cables if set
+    tray.AddModule(add_cable_to_geometry_frame,
+                   positions = cable_positions,
+                   radii = cable_radii,
+                   scattering_lengths = cable_scattering_lengths,
+                   absorption_lengths = cable_absorption_lengths,
+                   Streams = [icetray.I3Frame.Geometry])
+
 if options.use_isotropy: #Use isotropic emission profile
     #Configure geometry:
-    pocam_position = I3Position(*pos)
+    pocam_position = I3Position(*pocam_pos)
     photon_direction = I3Direction()
     photon_direction.set_theta_phi(0., 0.) #direction arbitrary due to isotropy
 
@@ -82,8 +112,8 @@ if options.use_isotropy: #Use isotropic emission profile
 
 else: #Use two seperated hemispheres as emission profile
     #Configure geometry:
-    pocam_position1 = I3Position(*[pos[0],pos[1],pos[2]+0.125]) #shift hemisphere 12.5cm upwards
-    pocam_position2 = I3Position(*[pos[0],pos[1],pos[2]-0.125]) #shift hemisphere 12.5cm downwards
+    pocam_position1 = I3Position(*[pocam_pos[0],pocam_pos[1],pocam_pos[2]+0.125]) #shift hemisphere 12.5cm upwards
+    pocam_position2 = I3Position(*[pocam_pos[0],pocam_pos[1],pocam_pos[2]-0.125]) #shift hemisphere 12.5cm downwards
 
     photon_direction1 = I3Direction()
     photon_direction2 = I3Direction()
