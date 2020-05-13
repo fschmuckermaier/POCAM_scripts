@@ -19,21 +19,28 @@ from I3Tray import * # otherwise the C++ modules have the wrong signatures
 
 parser = OptionParser(usage = "Usage: python propagate_photons_with_clsim.py options infile1.i3 infile2.i3 ...")
 parser.add_option("--output-i3-file", help = "I3 File to write the numbers of dom hits for each run to, e.g. tmp/numbers_of_dom_hits.i3")
-parser.add_option("--number-of-frames", type = "int", default = 0)
+parser.add_option("--number-of-runs", type = "int", default = 0)
 parser.add_option("--gcd-file", type = "str",default="/home/fschmuckermaier/gcd/GeoCalibDetectorStatus_IC86.55697_corrected_V2.i3.gz")
-
+parser.add_option("--seed",type="int",default=12345,help="Initial seed for the random number generator")
 (options, args) = parser.parse_args()
-
 input_files = args
+
 gcd_file=expandvars(options.gcd_file)
 
 
 tray = I3Tray()
 tray.AddModule("I3Reader",
-               FilenameList = input_files
-)
+               FilenameList = input_files)
 
-randomService = phys_services.I3GSLGRandomService(seed = options.seed)
+try:
+    randomService = phys_services.I3SPRNGRandomService(
+        seed = options.seed,
+        nstreams = 10000,
+        streamnum = 1)
+except AttributeError:
+    randomService = phys_services.I3GSLRandomService(
+        seed = options.seed)
+
 
 common_clsim_parameters = dict(
     PhotonSeriesName = "PropagatedPhotons",
@@ -44,12 +51,14 @@ common_clsim_parameters = dict(
     UnWeightedPhotonsScalingFactor = 1.0,
     DOMOversizeFactor = 1.0,
     UnshadowedFraction = 1.0,
+    DoNotParallelize=True,
+    UseGPUs=True,
+    UseCPUs=False,
+    StopDetectedPhotons = True,
     FlasherPulseSeriesName = "PhotonFlasherPulseSeries"
 )
 
 tray.AddSegment(clsim.I3CLSimMakeHits,
-                StopDetectedPhotons = True,
-                #ExtraArgumentsToI3CLSimModule = extra_args,
                 **common_clsim_parameters
                 )
 
@@ -60,7 +69,7 @@ tray.AddModule("TrashCan")
 if options.number_of_frames == 0:
     tray.Execute()
 else:
-    tray.Execute(options.number_of_frames)
+    tray.Execute(3+options.number_of_runs)
 
 tray.Finish()
 
