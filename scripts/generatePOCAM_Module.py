@@ -2,12 +2,12 @@
 
 from icecube import icetray, dataclasses
 from I3Tray import I3Units
-from icecube.dataclasses import I3Position
 from icecube.dataclasses import *
 from icecube.clsim import I3CLSimFlasherPulse, I3CLSimFlasherPulseSeries
 from datetime import datetime
 import math
 import random
+import numpy as np
 
 class GeneratePOCAM_Module(icetray.I3Module):
     """
@@ -21,9 +21,6 @@ class GeneratePOCAM_Module(icetray.I3Module):
         self.AddParameter("PhotonPosition",
                           "The position of the photon source.",
                           I3Position(0,0,0))
-        self.AddParameter("PhotonDirection",
-                          "The direction of the photon source",
-                          I3Direction(0,0,0))
         self.AddParameter("NumOfPhotons",
                           "The number of photons to inject from the given position.",
                           1)
@@ -35,13 +32,12 @@ class GeneratePOCAM_Module(icetray.I3Module):
                           1234)
         self.AddParameter("Isotropy",
                           "Using isotropic or hemispheric photon emission",
-			  True)        
+			  True)
         self.AddOutBox("OutBox")
 
     def Configure(self):
         self.series_frame_key = self.GetParameter("SeriesFrameKey")
         self.photon_position = self.GetParameter("PhotonPosition")
-        self.photon_direction = self.GetParameter("PhotonDirection")
         self.num_of_photons = self.GetParameter("NumOfPhotons")
         self.pulse_type = self.GetParameter("FlasherPulseType")
         self.seed = self.GetParameter("Seed")
@@ -58,13 +54,13 @@ class GeneratePOCAM_Module(icetray.I3Module):
 
         # Pulse duration:
         pulse.SetPulseWidth(5. * I3Units.ns) #POCAM: ~5ns
-	
+
         if isotropy: # Isotropic emission (cover full sphere)
-            pulse.SetAngularEmissionSigmaPolar( 180. * I3Units.deg ) 
+            pulse.SetAngularEmissionSigmaPolar( 180. * I3Units.deg )
             pulse.SetAngularEmissionSigmaAzimuthal( 360. * I3Units.deg )
         else: # Hemispheric emission (cover half of sphere)
             pulse.SetAngularEmissionSigmaPolar( 90. * I3Units.deg )
-            pulse.SetAngularEmissionSigmaAzimuthal( 360. * I3Units.deg )                                                                                                                  
+            pulse.SetAngularEmissionSigmaAzimuthal( 360. * I3Units.deg )
 
         return pulse
 
@@ -72,8 +68,28 @@ class GeneratePOCAM_Module(icetray.I3Module):
         random.seed(self.seed)
 
         pulse_series = I3CLSimFlasherPulseSeries()
-        pulse = self.generate_pulse(self.photon_position, self.photon_direction, self.num_of_photons, self.isotropy)
-        pulse_series.append(pulse)
+        if self.isotropy:
+            photon_direction = I3Direction()
+            photon_direction.set_theta_phi(0., 0.) #direction arbitrary due to isotropy
+
+            pulse = self.generate_pulse(self.photon_position, photon_direction, self.num_of_photons, self.isotropy)
+            pulse_series.append(pulse)
+        else:
+            #Define position of two hemispheres:
+            pocam_position=self.photon_position
+            pocam_position1 = I3Position(*[pocam_position[0],pocam_position[1],pocam_position[2]+0.125]) #shift hemisphere 12.5cm upwards
+            pocam_position2 = I3Position(*[pocam_position[0],pocam_position[1],pocam_position[2]-0.125]) #shift hemisphere 12.5cm downwards
+
+            #Define emission directions of two hemispheres:
+            photon_direction1 = I3Direction()
+            photon_direction2 = I3Direction()
+            photon_direction1.set_theta_phi(0., 0.) #one hemisphere points upwards
+            photon_direction2.set_theta_phi(np.pi, 0.) #one downwards
+
+            pulse1 = self.generate_pulse(pocam_position1, photon_direction1, 0.5*self.num_of_photons, self.isotropy)
+            pulse2 = self.generate_pulse(pocam_position2, photon_direction2, 0.5*self.num_of_photons, self.isotropy)
+            pulse_series.append(pulse1)
+            pulse_series.append(pulse2)
 
         frame[self.series_frame_key] = pulse_series
         self.PushFrame(frame, "OutBox")
