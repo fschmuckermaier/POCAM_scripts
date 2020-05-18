@@ -65,8 +65,8 @@ if options.add_cable: #Configure cables if set
     cable_absorption_length = 0.0
     cable_radius = 0.02 # metres
 
-    #Cable positions: 15cm in y direction from POCAM center
-    cable_positions=[[pos[0], pos[1]+0.15, pos[2]] for pos in pocam_positions]
+    #Cable positions: 10cm in y direction from POCAM center
+    cable_positions=[[pos[0], pos[1]+0.1, pos[2]] for pos in pocam_positions]
     cable_radii=[]
     cable_scattering_lengths=[]
     cable_absorption_lengths=[]
@@ -82,6 +82,7 @@ if options.add_cable: #Configure cables if set
         frame.Put("HoleIceCylinderScatteringLengths", dataclasses.I3VectorFloat(scattering_lengths))
         frame.Put("HoleIceCylinderAbsorptionLengths", dataclasses.I3VectorFloat(absorption_lengths))
 
+
 tray = I3Tray()
 tray.AddModule("I3InfiniteSource",
                Prefix = gcd_file,
@@ -95,47 +96,15 @@ if options.add_cable: #add cables if set
                    absorption_lengths = cable_absorption_lengths,
                    Streams = [icetray.I3Frame.Geometry])
 
-if options.use_isotropy: #Use isotropic emission profile
-    #Configure geometry:
-    pocam_position = I3Position(*pocam_pos)
-    photon_direction = I3Direction()
-    photon_direction.set_theta_phi(0., 0.) #direction arbitrary due to isotropy
-
-    tray.AddModule(GeneratePOCAM_Module,
-                   SeriesFrameKey = "PhotonFlasherPulseSeries",
-                   PhotonPosition = pocam_position,
-                   PhotonDirection = photon_direction,
-                   NumOfPhotons = options.number_of_photons,
-                   Seed = options.seed,
-      	           Isotropy= True,
-                   FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
-
-else: #Use two seperated hemispheres as emission profile
-    #Configure geometry:
-    pocam_position1 = I3Position(*[pocam_pos[0],pocam_pos[1],pocam_pos[2]+0.125]) #shift hemisphere 12.5cm upwards
-    pocam_position2 = I3Position(*[pocam_pos[0],pocam_pos[1],pocam_pos[2]-0.125]) #shift hemisphere 12.5cm downwards
-
-    photon_direction1 = I3Direction()
-    photon_direction2 = I3Direction()
-    photon_direction1.set_theta_phi(0., 0.) #one hemisphere points upwards
-    photon_direction2.set_theta_phi(np.pi, 0.) #one downwards
-
-    tray.AddModule(GeneratePOCAM_Module,
-                   SeriesFrameKey = "PhotonFlasherPulseSeries",
-                   PhotonPosition = pocam_position1,
-                   PhotonDirection = photon_direction1,
-                   NumOfPhotons = 0.5*options.number_of_photons,
-                   Seed = options.seed,
-                   Isotropy=False,
-                   FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
-    tray.AddModule(GeneratePOCAM_Module,
-                   SeriesFrameKey = "PhotonFlasherPulseSeries",
-                   PhotonPosition = pocam_position2,
-                   PhotonDirection = photon_direction2,
-                   NumOfPhotons = 0.5*options.number_of_photons,
-                   Seed = options.seed,
-                   Isotropy=False,
-                   FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
+#Configure position & add POCAM module:
+pocam_position = I3Position(*pocam_pos)
+tray.AddModule(GeneratePOCAM_Module,
+               SeriesFrameKey = "PhotonFlasherPulseSeries",
+               PhotonPosition = pocam_position,
+               NumOfPhotons = options.number_of_photons,
+               Seed = options.seed,
+      	       Isotropy= options.use_isotropy,
+               FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
 
 try:
     randomService = phys_services.I3SPRNGRandomService(
