@@ -33,3 +33,6 @@ Running the POCAM simulation could look like this (similar to `ppc_executable.sh
 ```
 ~IceCube/build/env-shell.sh python ~POCAM_scripts/ppc_scripts/simple_POCAM_simulation.py --output-i3-file="/path/test.i3" --string=88 --dom=71 --number-of-runs=100 <... and further options>
 ```
+
+## Cluster submission
+Contains a short script for the submission of an executable to the cluster. 
