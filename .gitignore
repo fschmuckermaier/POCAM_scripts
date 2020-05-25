@@ -1,4 +1,4 @@
 #Ignore folders:
  __pycache__/
 old_scripts/
-
+clsim_scripts/__pycache__/
