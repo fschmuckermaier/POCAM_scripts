@@ -11,7 +11,7 @@ The flasher pulse is created with the module `scripts/generatePOCAM_Module.py`, 
 
 ### Usage
 `clsim_executable.sh` is an example bash script, which can be submitted to a cluster. 
-Executing the POCAM simulation could look like this (similar to `clsim_executable.sh`):
+Executing the POCAM simulation could look like this (similar to `clsim_executable.sh`):\
 Setting up the environment first:
 ```
 eval $(/cvmfs/icecube.opensciencegrid.org/py3-v4.1.0/setup.sh)
@@ -36,3 +36,6 @@ Running the POCAM simulation could look like this (similar to `ppc_executable.sh
 
 ## Cluster submission
 Contains a short script for the submission of an executable to the cluster. 
+
+## Notebooks
+Contains a notebook that explains how to read out simulated data and how to access the current POCAM positions from an upgrade GCD. 
