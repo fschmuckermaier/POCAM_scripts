@@ -25,7 +25,7 @@ and then running:
 ppc scripts to perform a simple simulation. Here, the POCAM is treated as an isotropic lightsource. 
 
 ### Description
-`simple_POCAM_simulation.py` is a slightly modified version of the standard example script in ppc. It produces isotropic flashes at the given DOM position. The default gcd contains the current upgrade geometry. Somehow non-optical module positions, e.g. positions for calibration devices, are not flashable. For the time being the next position under the real POCAM position (d=3m) is used for flashing. If exact position becomes relevant this issue is probably worth fixing. 
+`simple_POCAM_simulation.py` is a slightly modified version of the standard example script in ppc. It produces isotropic flashes at the given DOM position. The default gcd contains the current upgrade geometry. Somehow non-optical module positions, e.g. positions for calibration devices, flash at the coordinate systems origin. For the time being the next position over the real POCAM position (~3m) is used for flashing. If exact position becomes relevant this issue is probably worth fixing. 
 
 ### Usage
 `ppc_executable.sh` is an example bash script, which can be submitted to a cluster. 
